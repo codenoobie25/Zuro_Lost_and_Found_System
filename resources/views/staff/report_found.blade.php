@@ -24,19 +24,39 @@
                     @csrf
 
                     <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ __('Item Title') }} <span class="text-gray-900">*</span>
+                        <label for="source_item_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ __('Lost Item') }} <span class="text-gray-900">*</span>
                         </label>
-                        <input type="text" id="title" name="title" placeholder="e.g., Red JanSport Backpack" required
-                            class="w-full rounded-xl bg-gray-50 border-transparent focus:border-gray-300 focus:bg-white focus:ring-0 px-4 py-3 text-sm text-gray-900">
+                        <select id="source_item_id" name="source_item_id" required
+                            class="w-full rounded-xl bg-gray-50 border-transparent focus:border-gray-300 focus:bg-white focus:ring-0 px-4 py-3 text-sm text-gray-600">
+                            <option value="" disabled @selected(old('source_item_id') === null)>Select a lost item</option>
+                            @forelse ($lostItems as $lostItem)
+                                <option value="{{ $lostItem->id }}" @selected(old('source_item_id') == $lostItem->id)>
+                                    {{ $lostItem->title }} - {{ \Illuminate\Support\Str::limit($lostItem->description, 80) }}
+                                </option>
+                            @empty
+                            @endforelse
+                            <option value="not_listed" @selected(old('source_item_id') === 'not_listed')>Item not listed.</option>
+                        </select>
+                        <p class="mt-2 text-xs text-gray-400">{{ __('Choose a match from the lost item reports. Select Item not listed if the item is not shown.') }}</p>
                     </div>
 
-                    <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ __('Description') }} <span class="text-gray-900">*</span>
-                        </label>
-                        <textarea id="description" name="description" rows="3" placeholder="Provide detailed description of the item..." required
-                            class="w-full rounded-xl bg-gray-50 border-transparent focus:border-gray-300 focus:bg-white focus:ring-0 px-4 py-3 text-sm text-gray-900"></textarea>
+                    <div id="manual-item-fields" class="space-y-6 hidden">
+                        <div>
+                            <label for="manual_title" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ __('Item Title') }} <span class="text-gray-900">*</span>
+                            </label>
+                            <input type="text" id="manual_title" name="manual_title" value="{{ old('manual_title') }}" placeholder="e.g., Red JanSport Backpack"
+                                class="w-full rounded-xl bg-gray-50 border-transparent focus:border-gray-300 focus:bg-white focus:ring-0 px-4 py-3 text-sm text-gray-900">
+                        </div>
+
+                        <div>
+                            <label for="manual_description" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ __('Description') }} <span class="text-gray-900">*</span>
+                            </label>
+                            <textarea id="manual_description" name="manual_description" rows="3" placeholder="Provide detailed description of the item..."
+                                class="w-full rounded-xl bg-gray-50 border-transparent focus:border-gray-300 focus:bg-white focus:ring-0 px-4 py-3 text-sm text-gray-900">{{ old('manual_description') }}</textarea>
+                        </div>
                     </div>
 
                     <div>
@@ -158,10 +178,10 @@
                 const categorySelect = document.getElementById('category');
                 const otherCategoryWrap = document.getElementById('other-category-wrap');
                 const otherCategoryInput = document.getElementById('other-category');
-
-                if (!input || !previewWrap || !preview) {
-                    return;
-                }
+                const sourceItemSelect = document.getElementById('source_item_id');
+                const manualItemFields = document.getElementById('manual-item-fields');
+                const manualTitleInput = document.getElementById('manual_title');
+                const manualDescriptionInput = document.getElementById('manual_description');
 
                 const toggleOtherCategory = function () {
                     if (!categorySelect || !otherCategoryWrap || !otherCategoryInput) {
@@ -176,9 +196,29 @@
                     }
                 };
 
+                const toggleManualItemFields = function () {
+                    if (!sourceItemSelect || !manualItemFields || !manualTitleInput || !manualDescriptionInput) {
+                        return;
+                    }
+
+                    const shouldShow = sourceItemSelect.value === 'not_listed';
+                    manualItemFields.classList.toggle('hidden', !shouldShow);
+                    manualTitleInput.required = shouldShow;
+                    manualDescriptionInput.required = shouldShow;
+                };
+
                 if (categorySelect) {
                     categorySelect.addEventListener('change', toggleOtherCategory);
                     toggleOtherCategory();
+                }
+
+                if (sourceItemSelect) {
+                    sourceItemSelect.addEventListener('change', toggleManualItemFields);
+                    toggleManualItemFields();
+                }
+
+                if (!input || !previewWrap || !preview) {
+                    return;
                 }
 
                 let activePreviewUrl = null;

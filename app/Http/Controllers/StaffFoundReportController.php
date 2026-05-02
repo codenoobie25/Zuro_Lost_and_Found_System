@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,8 +13,9 @@ class StaffFoundReportController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'max:5000'],
+            'source_item_id' => ['required', 'string'],
+            'manual_title' => ['nullable', 'string', 'max:255'],
+            'manual_description' => ['nullable', 'string', 'max:5000'],
             'image' => ['required', 'image', 'max:5120'],
             'category' => ['required', 'string', 'max:100'],
             'custom_category' => ['nullable', 'string', 'max:100', 'required_if:category,other'],
@@ -22,6 +24,28 @@ class StaffFoundReportController extends Controller
             'date_found' => ['nullable', 'date'],
             'tags' => ['nullable', 'string', 'max:500'],
         ]);
+
+        if ($validated['source_item_id'] === 'not_listed') {
+            $request->validate([
+                'manual_title' => ['required', 'string', 'max:255'],
+                'manual_description' => ['required', 'string', 'max:5000'],
+            ]);
+
+            $title = trim((string) $validated['manual_title']);
+            $description = trim((string) $validated['manual_description']);
+        } else {
+            $sourceItem = Item::query()
+                ->whereKey($validated['source_item_id'])
+                ->where('status', 'lost')
+                ->first();
+
+            if (! $sourceItem) {
+                return back()->withInput()->with('error', 'The selected lost item is no longer available.');
+            }
+
+            $title = $sourceItem->title;
+            $description = $sourceItem->description;
+        }
 
         $resolvedCategory = $validated['category'] === 'other'
             ? trim((string) ($validated['custom_category'] ?? ''))
@@ -37,10 +61,10 @@ class StaffFoundReportController extends Controller
 
         // Insert only into columns that exist, so this works with evolving schema.
         if (Schema::hasColumn('items', 'title')) {
-            $payload['title'] = $validated['title'];
+            $payload['title'] = $title;
         }
         if (Schema::hasColumn('items', 'description')) {
-            $payload['description'] = $validated['description'];
+            $payload['description'] = $description;
         }
         if (Schema::hasColumn('items', 'image_path')) {
             $payload['image_path'] = $imagePath;

@@ -98,8 +98,8 @@
                                             <form action="{{ route('user.claims.store') }}" method="POST" class="space-y-2">
                                                 @csrf
                                                 <input type="hidden" name="item_id" value="{{ $item->id }}">
-                                                <textarea name="reason" rows="2" placeholder="Why is this your item? (optional)" class="w-56 rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 focus:border-green-600 focus:outline-none"></textarea>
-                                                <button type="submit" class="inline-flex items-center rounded-lg bg-green-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-800">
+                                                <textarea id="reason-{{ $item->id }}" name="reason" rows="2" placeholder="Why is this your item?" class="w-56 rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 focus:border-green-600 focus:outline-none"></textarea>
+                                                <button id="submit-claim-{{ $item->id }}" type="submit" disabled class="inline-flex items-center rounded-lg bg-green-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed">
                                                     Submit Claim
                                                 </button>
                                             </form>
@@ -119,4 +119,28 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all reason textareas
+            const reasonTextareas = document.querySelectorAll('[id^="reason-"]');
+            
+            reasonTextareas.forEach(textarea => {
+                const itemId = textarea.id.replace('reason-', '');
+                const submitButton = document.getElementById(`submit-claim-${itemId}`);
+                
+                if (submitButton) {
+                    // Function to update button state
+                    const updateButtonState = () => {
+                        const isValid = textarea.value.trim().length > 0;
+                        submitButton.disabled = !isValid;
+                    };
+                    
+                    // Add event listeners
+                    textarea.addEventListener('input', updateButtonState);
+                    textarea.addEventListener('change', updateButtonState);
+                }
+            });
+        });
+    </script>
 </x-app-layout>

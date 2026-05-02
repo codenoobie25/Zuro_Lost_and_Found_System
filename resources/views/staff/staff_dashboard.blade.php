@@ -27,7 +27,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $foundItems ?? '2' }}</p>
+                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $foundItems ?? 0 }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('In inventory') }}</p>
                     </div>
 
@@ -40,7 +40,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $pendingClaims ?? '1' }}</p>
+                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $pendingClaims ?? 0 }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('Awaiting verification') }}</p>
                     </div>
 
@@ -53,7 +53,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $verifiedClaims ?? '0' }}</p>
+                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $verifiedClaims ?? 0 }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('Ready for pickup') }}</p>
                     </div>
 
@@ -66,7 +66,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $totalItems ?? '3' }}</p>
+                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $totalItems ?? 0 }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('All items tracked') }}</p>
                     </div>
 

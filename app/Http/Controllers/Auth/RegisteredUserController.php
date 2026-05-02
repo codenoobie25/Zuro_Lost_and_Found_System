@@ -38,7 +38,6 @@ class RegisteredUserController extends Controller
         ]);
 
         $user = User::create([
-            'name' => trim($request->fname . ' ' . $request->lname),
             'first_name' => $request->fname,
             'last_name' => $request->lname,
             'email' => $request->email,

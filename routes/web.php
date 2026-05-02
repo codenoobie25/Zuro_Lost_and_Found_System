@@ -9,40 +9,54 @@ use App\Http\Controllers\StaffFoundReportController;
 use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\UserClaimController;
 use App\Http\Controllers\ClaimController;
+use App\Models\Claim;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 
-function build_item_query(Request $request): array
-{
-    $query = Item::query()->with('reporter')->latest();
+if (! function_exists('build_item_query')) {
+    function build_item_query(Request $request): array
+    {
+        $query = Item::query()->with('reporter')->latest();
 
-    $search = trim((string) $request->query('search', ''));
-    if ($search !== '') {
-        $query->where(function ($itemQuery) use ($search) {
-            $itemQuery->where('title', 'like', '%' . $search . '%')
-                ->orWhere('description', 'like', '%' . $search . '%')
-                ->orWhere('location', 'like', '%' . $search . '%')
-                ->orWhere('tags', 'like', '%' . $search . '%');
-        });
+        $search = trim((string) $request->query('search', ''));
+        if ($search !== '') {
+            $query->where(function ($itemQuery) use ($search) {
+                $itemQuery->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%')
+                    ->orWhere('location', 'like', '%' . $search . '%')
+                    ->orWhere('tags', 'like', '%' . $search . '%');
+            });
+        }
+
+        $status = trim((string) $request->query('status', ''));
+        if (in_array($status, ['lost', 'found', 'claimed', 'returned'], true)) {
+            $query->where('status', $status);
+        }
+
+        $category = trim((string) $request->query('category', ''));
+        if ($category !== '') {
+            $query->where('category', 'like', '%' . $category . '%');
+        }
+
+        return [
+            'items' => $query->get(),
+            'search' => $search,
+            'status' => $status,
+            'category' => $category,
+        ];
     }
+}
 
-    $status = trim((string) $request->query('status', ''));
-    if (in_array($status, ['lost', 'found', 'claimed', 'returned'], true)) {
-        $query->where('status', $status);
+if (! function_exists('build_lost_items')) {
+    function build_lost_items()
+    {
+        return Item::query()
+            ->where('status', 'lost')
+            ->latest()
+            ->get(['id', 'title', 'description']);
     }
-
-    $category = trim((string) $request->query('category', ''));
-    if ($category !== '') {
-        $query->where('category', 'like', '%' . $category . '%');
-    }
-
-    return [
-        'items' => $query->get(),
-        'search' => $search,
-        'status' => $status,
-        'category' => $category,
-    ];
 }
 
 Route::get('/', function () {
@@ -87,7 +101,9 @@ Route::middleware(['auth', 'role:staff'])->group(function () {
     })->name('staff.inventory');
 
     Route::get('/staff/report-found', function () {
-        return view('staff.report_found');
+        return view('staff.report_found', [
+            'lostItems' => build_lost_items(),
+        ]);
     })->name('staff.report-found');
     Route::get('/staff/report_found', function () {
         return redirect()->route('staff.report-found');
@@ -104,8 +120,39 @@ Route::middleware(['auth', 'role:staff'])->group(function () {
 
 // User
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('users.users_dashboard');
+    Route::get('/dashboard', function (Request $request) {
+        $userId = $request->user()->id;
+
+        $myReportsCount = 0;
+        $myClaimsCount = 0;
+        $availableItemsCount = 0;
+        $lostItemsCount = 0;
+
+        if (Schema::hasTable('items')) {
+            if (Schema::hasColumn('items', 'reported_by')) {
+                $myReportsCount = Item::query()
+                    ->where('reported_by', $userId)
+                    ->count();
+            }
+
+            if (Schema::hasColumn('items', 'status')) {
+                $availableItemsCount = Item::query()->where('status', 'found')->count();
+                $lostItemsCount = Item::query()->where('status', 'lost')->count();
+            }
+        }
+
+        if (Schema::hasTable('claims')) {
+            $myClaimsCount = Claim::query()
+                ->where('user_id', $userId)
+                ->count();
+        }
+
+        return view('users.users_dashboard', [
+            'myReportsCount' => $myReportsCount,
+            'myClaimsCount' => $myClaimsCount,
+            'availableItemsCount' => $availableItemsCount,
+            'lostItemsCount' => $lostItemsCount,
+        ]);
     })->name('dashboard');
 
     Route::get('/user/search-items', function (Request $request) {
@@ -113,7 +160,9 @@ Route::middleware(['auth'])->group(function () {
     })->name('user.search-items');
 
     Route::get('/user/Report-found', function () {
-        return view('users.report_found');
+        return view('users.report_found', [
+            'lostItems' => build_lost_items(),
+        ]);
     })->name('user.report-found');
     Route::post('/user/report-found', [StaffFoundReportController::class, 'store'])->name('user.report-found.store');
 

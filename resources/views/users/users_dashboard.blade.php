@@ -27,7 +27,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $myReportsCount ?? '1' }}</p>
+                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $myReportsCount ?? 0 }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('Items I reported') }}</p>
                     </div>
 
@@ -40,7 +40,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $myClaimsCount ?? '1' }}</p>
+                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $myClaimsCount ?? 0 }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('Items I claimed') }}</p>
                     </div>
 
@@ -53,7 +53,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $availableItemsCount ?? '2' }}</p>
+                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $availableItemsCount ?? 0 }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('Items to claim') }}</p>
                     </div>
 
@@ -66,7 +66,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $lostItemsCount ?? '1' }}</p>
+                        <p class="mt-4 text-3xl font-bold text-gray-900">{{ $lostItemsCount ?? 0 }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('Currently lost') }}</p>
                     </div>
 
