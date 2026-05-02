@@ -59,9 +59,9 @@ if (! function_exists('build_lost_items')) {
     }
 }
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 Route::redirect('/', '/login');
 
 Route::middleware('auth')->group(function () {
