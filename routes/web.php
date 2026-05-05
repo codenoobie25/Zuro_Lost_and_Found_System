@@ -160,14 +160,14 @@ Route::middleware(['auth'])->group(function () {
     })->name('user.search-items');
 
     Route::get('/user/Report-found', function () {
-        return view('users.report_found', [
+        return view('users.Report_found', [
             'lostItems' => build_lost_items(),
         ]);
     })->name('user.report-found');
     Route::post('/user/report-found', [StaffFoundReportController::class, 'store'])->name('user.report-found.store');
 
     Route::get('/user/Report-lost', function () {
-        return view('users.report_lost');
+        return view('users.Report_lost');
     })->name('user.report-lost');
     Route::post('/user/report-lost', [StaffLostReportController::class, 'store'])->name('user.report-lost.store');
     Route::post('/user/claims', [UserClaimController::class, 'store'])->name('user.claims.store');
